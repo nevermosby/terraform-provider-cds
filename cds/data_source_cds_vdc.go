@@ -57,26 +57,87 @@ func dataSourceCdsVdc() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						// "private_network": {
-						// 	Type:     schema.TypeList,
-						// 	Computed: true,
-						// 	Elem: &schema.Resource{
-						// 		Schema: map[string]*schema.Schema{
-						// 			"PrivateId": {
-						// 				Type: schema.TypeString,
-						// 				Computed: true,
-						// 			},
-						// 			"Status": {
-						// 				Type: schema.TypeString,
-						// 				Computed: true,
-						// 			},
-						// 			"Status": {
-						// 				Type: schema.TypeString,
-						// 				Computed: true,
-						// 			},
-						// 		},
-						// 	},
-						// },
+						"private_network": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"private_id": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"status": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"name": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"unuse_ip_num": {
+										Type:     schema.TypeInt,
+										Computed: true,
+									},
+									"segments": {
+										Type:     schema.TypeList,
+										Computed: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
+								},
+							},
+						},
+						"public_network": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"public_id": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"status": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"qos": {
+										Type:     schema.TypeInt,
+										Computed: true,
+									},
+									"name": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"unuse_ip_num": {
+										Type:     schema.TypeInt,
+										Computed: true,
+									},
+									"segments": {
+										Type:     schema.TypeList,
+										Computed: true,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"mask": {
+													Type:     schema.TypeString,
+													Computed: true,
+												},
+												"gateway": {
+													Type:     schema.TypeString,
+													Computed: true,
+												},
+												"segment_id": {
+													Type:     schema.TypeString,
+													Computed: true,
+												},
+												"address": {
+													Type:     schema.TypeString,
+													Computed: true,
+												},
+											},
+										},
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -113,11 +174,11 @@ func vdcDescriptionAttributes(d *schema.ResourceData, result vdc.DescVdcResponse
 
 	for _, vdc := range result.Data {
 		mapping := map[string]interface{}{
-			"vdc_id":    vdc.VdcId,
-			"vdc_name":  vdc.VdcName,
-			"region_id": vdc.RegionId,
-			// "private_network": vdc.PrivateNetwork,
-			// "public_network":  vdc.PublicNetwork,
+			"vdc_id":          vdc.VdcId,
+			"vdc_name":        vdc.VdcName,
+			"region_id":       vdc.RegionId,
+			"private_network": flattenPrivateNetworks(vdc.PrivateNetwork),
+			"public_network":  flattenPublicNetworks(vdc.PublicNetwork),
 		}
 		names = append(names, *vdc.VdcName)
 		out = append(out, mapping)
@@ -138,4 +199,59 @@ func vdcDescriptionAttributes(d *schema.ResourceData, result vdc.DescVdcResponse
 	}
 
 	return nil
+}
+
+func flattenPublicSegments(publicSegments []*vdc.PublicSegment) []map[string]interface{} {
+
+	publicSegmentSchema := make([]map[string]interface{}, 0, len(publicSegments))
+
+	for _, publicSegment := range publicSegments {
+		data := map[string]interface{}{
+			"mask":       publicSegment.Mask,
+			"gateway":    publicSegment.Gateway,
+			"segment_id": publicSegment.SegmentId,
+			"address":    publicSegment.Address,
+		}
+
+		publicSegmentSchema = append(publicSegmentSchema, data)
+	}
+
+	return publicSegmentSchema
+}
+
+func flattenPublicNetworks(publicNetworks []*vdc.PublicNetworkInfo) []map[string]interface{} {
+	publicNetworkSchema := make([]map[string]interface{}, 0, len(publicNetworks))
+
+	for _, publicNetwork := range publicNetworks {
+		data := map[string]interface{}{
+			"public_id":    publicNetwork.PublicId,
+			"status":       publicNetwork.Status,
+			"qos":          publicNetwork.Qos,
+			"name":         publicNetwork.Name,
+			"unuse_ip_num": publicNetwork.UnuseIpNum,
+			"segments":     flattenPublicSegments(publicNetwork.Segments),
+		}
+
+		publicNetworkSchema = append(publicNetworkSchema, data)
+	}
+
+	return publicNetworkSchema
+}
+
+func flattenPrivateNetworks(privateNetworks []*vdc.PrivateNetwork) []map[string]interface{} {
+	privateNetworkSchema := make([]map[string]interface{}, 0, len(privateNetworks))
+
+	for _, privateNetwork := range privateNetworks {
+		data := map[string]interface{}{
+			"private_id":   privateNetwork.PrivateId,
+			"status":       privateNetwork.Status,
+			"name":         privateNetwork.Name,
+			"unuse_ip_num": privateNetwork.UnuseIpNum,
+			"segments":     privateNetwork.Segments,
+		}
+
+		privateNetworkSchema = append(privateNetworkSchema, data)
+	}
+
+	return privateNetworkSchema
 }
