@@ -21,11 +21,11 @@ $ go get
 # complie
 $ go build -o terraform-provider-cds
 
+# This is for linux and MacOS, if you use other system, please move the compiled file to right path, you can check out the official document [here](https://www.terraform.io/docs/configuration/providers.html#third-party-plugins)
 $ mkdir ~/.terraform.d/plugins/
 
 $ mv terraform-provider-cds ~/.terraform.d/plugins/
 
-#this is for linux, if you use other system, please move the compiled file to right path.
 ```
 If you already have the compiled file, just put it to your terraform.d/plugins path.
 
