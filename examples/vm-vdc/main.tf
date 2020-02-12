@@ -6,7 +6,7 @@ resource "cds_vdc" "my_vdc" {
     "ipnum"          = 4
     "qos"            = 20
     "name"           = "test-accPubNet"
-    "floatbandwidth" = 5
+    "floatbandwidth" = 200
     "billingmethod"  = "BandwIdth"
     "autorenew"      = 1
     "type"           = "Bandwidth_BGP"
