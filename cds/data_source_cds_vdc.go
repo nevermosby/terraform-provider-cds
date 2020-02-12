@@ -2,7 +2,6 @@ package cds
 
 import (
 	"context"
-	"log"
 	"time"
 
 	"terraform-provider-cds/cds-sdk-go/common"
@@ -16,10 +15,6 @@ func dataSourceCdsVdc() *schema.Resource {
 		Read: dataSourceCdsVdcRead,
 
 		Schema: map[string]*schema.Schema{
-			// "id": {
-			// 	Type:     schema.TypeString,
-			// 	Computed: true,
-			// },
 			"vdc_id": {
 				Type:        schema.TypeString,
 				Required:    true,
@@ -31,14 +26,9 @@ func dataSourceCdsVdc() *schema.Resource {
 				Description: "vdc name.",
 			},
 			"result_output_file": {
-				Type: schema.TypeString,
-				// Required:    true,
+				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Used to save results.",
-			},
-			"davidtest": {
-				Type:     schema.TypeString,
-				Computed: true,
 			},
 			"vdc": {
 				Type:     schema.TypeList,
@@ -75,7 +65,8 @@ func dataSourceCdsVdc() *schema.Resource {
 										Computed: true,
 									},
 									"unuse_ip_num": {
-										Type:     schema.TypeInt,
+										// using string instead of int to prevent 0 for misleading
+										Type:     schema.TypeString,
 										Computed: true,
 									},
 									"segments": {
@@ -108,7 +99,8 @@ func dataSourceCdsVdc() *schema.Resource {
 										Computed: true,
 									},
 									"unuse_ip_num": {
-										Type:     schema.TypeInt,
+										// using string instead of int to prevent 0 for misleading
+										Type:     schema.TypeString,
 										Computed: true,
 									},
 									"segments": {
@@ -184,7 +176,6 @@ func vdcDescriptionAttributes(d *schema.ResourceData, result vdc.DescVdcResponse
 		out = append(out, mapping)
 	}
 
-	log.Printf("[DEBUG] Received CDS vdc names: %q", names)
 	d.SetId(time.Now().UTC().String())
 	// TODO: sort by region id
 	if err := d.Set("vdc", out); err != nil {
@@ -228,7 +219,7 @@ func flattenPublicNetworks(publicNetworks []*vdc.PublicNetworkInfo) []map[string
 			"status":       publicNetwork.Status,
 			"qos":          publicNetwork.Qos,
 			"name":         publicNetwork.Name,
-			"unuse_ip_num": publicNetwork.UnuseIpNum,
+			"unuse_ip_num": intToString(publicNetwork.UnuseIpNum),
 			"segments":     flattenPublicSegments(publicNetwork.Segments),
 		}
 
@@ -246,7 +237,7 @@ func flattenPrivateNetworks(privateNetworks []*vdc.PrivateNetwork) []map[string]
 			"private_id":   privateNetwork.PrivateId,
 			"status":       privateNetwork.Status,
 			"name":         privateNetwork.Name,
-			"unuse_ip_num": privateNetwork.UnuseIpNum,
+			"unuse_ip_num": intToString(privateNetwork.UnuseIpNum),
 			"segments":     privateNetwork.Segments,
 		}
 
